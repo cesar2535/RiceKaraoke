@@ -7,6 +7,8 @@
     this.playbackRate = 1;
     this.playlist = [];
 
+    this.currentMediaDuration = 0;
+    this.currentMediaTime = 0;
 
     this.initializeAudioEvent();
   };
@@ -89,6 +91,7 @@
   };
 
   AudioPlayer.prototype.canPlayListener = function() {
+    this.currentMediaDuration = this.player.duration;
     this.canPlayFlag = true;
     console.log('Current Source: ' + this.player.currentSrc);
   };
@@ -98,6 +101,7 @@
   };
 
   AudioPlayer.prototype.timeUpdateListener = function() {
+    this.currentMediaTime = this.player.currentTime;
     console.log('Current Time: ' + this.player.currentTime);
   };
 
