@@ -1,16 +1,40 @@
 (function () {
   'use strict';
 
+  var numDisplayLines = 2;
+
+  /**
+   *  Playlist Schema:
+   *  {
+   *    title: '',
+   *    artist: '',
+   *    src: '*.mp3',
+   *    lrc: []
+   *  }
+   **/
+
+
   var AudioPlayer = function () {
     this.player = document.getElementById('audio-player');
     this.canPlayFlag = false;
     this.playbackRate = 1;
     this.playlist = [];
 
+    this.show = undefined;
+    this.renderInterval = undefined;
+
+    this.timer = undefined;
+    this.timeSteps = 100;
+
     this.currentMediaDuration = 0;
     this.currentMediaTime = 0;
+    this.lastMediaTime = 0;
 
     this.initializeAudioEvent();
+  };
+
+  AudioPlayer.prototype.initializePlayer = function() {
+    
   };
 
   AudioPlayer.prototype.AddToPlaylist = function(media) {
@@ -22,6 +46,9 @@
   AudioPlayer.prototype.loadMedia = function() {
     this.player.src = this.playlist[0];
     this.player.load();
+    // var karaoke = new RiceKaraoke(RiceKaraoke.simpleTimingToTiming(this.playlist[0].lrc));
+    // var renderer = new SimpleKaraokeDisplayEngine('karaoke-display', numDisplayLines);
+    // this.show = karaoke.createShow(renderer, numDisplayLines);
   };
 
   AudioPlayer.prototype.playMedia = function() {
@@ -46,12 +73,16 @@
     this.playlist.shift();
 
     if (this.playlist[0]) {
-      this.player.src = this.playlist[0];
-      this.player.load();
+      this.loadMedia();
       this.playMedia();
     } else {
       console.error('No next media');
     }
+  };
+
+  AudioPlayer.prototype.incrementMediaTime = function() {
+    this.currentMediaTime = this.player.currentTime;
+    console.log('Current Time: ' + this.currentMediaTime);
   };
   
   AudioPlayer.prototype.initializeAudioEvent = function() {
@@ -94,6 +125,24 @@
     this.currentMediaDuration = this.player.duration;
     this.canPlayFlag = true;
     console.log('Current Source: ' + this.player.currentSrc);
+
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = undefined;
+    }
+
+    this.timer = setInterval(this.incrementMediaTime.bind(this), this.timeSteps);
+
+    // if (this.renderInterval)
+    //   clearInterval(this.renderInterval);
+    // this.renderInterval = setInterval(function () {
+    //   if (this.player.currentTime < this.lastMediaTime){
+    //     this.show.reset();
+    //   }
+
+    //   this.show.render(this.player.currentTime);
+    //   this.lastMediaTime = this.player.currentTime;
+    // });
   };
 
   AudioPlayer.prototype.canPlayThroughListener = function() {
@@ -101,8 +150,8 @@
   };
 
   AudioPlayer.prototype.timeUpdateListener = function() {
-    this.currentMediaTime = this.player.currentTime;
-    console.log('Current Time: ' + this.player.currentTime);
+    // this.currentMediaTime = this.player.currentTime;
+    // console.log('Current Time: ' + this.currentMediaTime);
   };
 
   AudioPlayer.prototype.playListener = function() {
@@ -111,6 +160,12 @@
 
   AudioPlayer.prototype.endedListener = function() {
     console.log('----- Media Ended -----');
+
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = undefined;
+    }
+
     this.nextMedia();
   };
 
