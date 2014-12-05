@@ -5,8 +5,13 @@ html
     //- JavaScript Vendor
     script(type='text/javascript', src='assets/js/vendor/ricekaraoke.js')
     script(type='text/javascript', src='assets/js/vendor/simplekaraokedisplay.js')
+    script(type='text/javascript', src='assets/js/vendor/jwplayer.js')
+    script(type='text/javascript').
+      jwplayer.key = '/GajGJyrH1I9wJc7oDyp3Os4TiGKzNSFJbPvWg==';
   body
     h1 RiceKaraoke + HTML5 Audio Player
     h3 Just test
     audio#audio-player(controls='')
+    #my-jwplayer Loading the player...
     script(src='js/app.js')
+    script(src='js/jwapp.js')
