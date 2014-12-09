@@ -458,51 +458,51 @@ aud.addEventListener('canplaythrough', function () {
 
 });
 
-function getTimeString(t) {
-  var min = Math.floor(t / 60);
-  var secs = Math.floor(t % 60);
-  return min + ':' + (secs < 10 ? '0' : '') + secs;
-}
+// function getTimeString(t) {
+//   var min = Math.floor(t / 60);
+//   var secs = Math.floor(t % 60);
+//   return min + ':' + (secs < 10 ? '0' : '') + secs;
+// }
 
-function changePosition(percent) {
-  if (player != null) {
-    var duration = player.loaded ? player.duration : player.durationEstimate;
-    var position = duration * percent / 100;
-    player.setPosition(position);
-  }
-}
+// function changePosition(percent) {
+//   if (player != null) {
+//     var duration = player.loaded ? player.duration : player.durationEstimate;
+//     var position = duration * percent / 100;
+//     player.setPosition(position);
+//   }
+// }
 
-function updateControls() {
-  if (isScrubbing) {
-    $('#play-button').attr('disabled', 'disabled');
-  } else {
-    $('#play-button').removeAttr('disabled');
-  }
+// function updateControls() {
+//   if (isScrubbing) {
+//     $('#play-button').attr('disabled', 'disabled');
+//   } else {
+//     $('#play-button').removeAttr('disabled');
+//   }
 
-  if (player.paused) {
-    $('#play-button').html('<img src="assets/images/play.png" alt="Play" />');
-  } else {
-    $('#play-button').html('<img src="assets/images/pause.png" alt="Pause" />');
-  }
+//   if (player.paused) {
+//     $('#play-button').html('<img src="assets/images/play.png" alt="Play" />');
+//   } else {
+//     $('#play-button').html('<img src="assets/images/pause.png" alt="Pause" />');
+//   }
 
-  updateStatus();
-}
+//   updateStatus();
+// }
 
-function updateStatus() {
-  var duration = player.loaded ? player.duration : player.durationEstimate;
-  $('#status').text(getTimeString(player.position / 1000) + ' / ' +
-    getTimeString(duration / 1000));
-}
+// function updateStatus() {
+//   var duration = player.loaded ? player.duration : player.durationEstimate;
+//   $('#status').text(getTimeString(player.position / 1000) + ' / ' +
+//     getTimeString(duration / 1000));
+// }
 
-function setup() {
-  $('#loading-dialog').hide();
-  $('#player').show();
-  $('#play-button').click(function(e) {
-    player.togglePause();
-  });
+// function setup() {
+//   $('#loading-dialog').hide();
+//   $('#player').show();
+//   $('#play-button').click(function(e) {
+//     player.togglePause();
+//   });
 
-  updateControls();
-}
+//   updateControls();
+// }
 
 function init() {
   // Create the karaoke engine and get a show instance
@@ -514,6 +514,7 @@ function init() {
 
   aud.src = './karaoke/what_is_love.mp3';
   aud.load();
+  aud.play();
 
   // Create the scrubber
   // scrubber = $("#scrubber").slider({
@@ -584,19 +585,20 @@ function init() {
   //   }
   // });
 
-  setup();
+  // setup();
 }
 
 $('#loading-message').text("Loading, please wait...");
 
+init();
 // Start up the music
-soundManager.url = 'assets/';
-soundManager.onerror = function() {
-  alert('SoundManager failed to load!');
-}
-soundManager.onload = function() {
-  init();
-}
+// soundManager.url = 'assets/';
+// soundManager.onerror = function() {
+//   alert('SoundManager failed to load!');
+// }
+// soundManager.onload = function() {
+//   init();
+// }
 
 /*
 var i = 6.0;
