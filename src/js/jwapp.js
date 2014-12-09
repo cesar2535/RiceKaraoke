@@ -119,7 +119,8 @@
     width: 640,
     cast: {
       appid: 'E0726555'
-    }
+    },
+    skin: 'five'.toLowerCase()
   });
 
   player.onComplete(function () {
