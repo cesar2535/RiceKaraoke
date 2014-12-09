@@ -14,8 +14,8 @@
    **/
 
 
-  var AudioPlayer = function () {
-    this.player = document.getElementById('audio-player');
+  var AudioPlayer = function (playerId) {
+    this.player = undefined;
     this.canPlayFlag = false;
     this.playbackRate = 1;
     this.playlist = [];
@@ -30,11 +30,17 @@
     this.currentMediaTime = 0;
     this.lastMediaTime = 0;
 
-    this.initializeAudioEvent();
+
+    this.initial(playerId);
   };
 
-  AudioPlayer.prototype.initializePlayer = function() {
-    
+  AudioPlayer.prototype.initial = function(playerId) {
+    this.player = document.getElementById(playerId);
+
+    if (!this.player)
+      throw new Error('No player here!');
+
+    this.initializeAudioEvent();
   };
 
   AudioPlayer.prototype.AddToPlaylist = function(media) {
@@ -171,5 +177,5 @@
 
   window.AudioPlayer = AudioPlayer;
 
-  window.aud = new AudioPlayer();
+  window.aud = new AudioPlayer('audio-player');
 }) ();
