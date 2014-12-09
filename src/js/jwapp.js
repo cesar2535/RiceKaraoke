@@ -115,7 +115,11 @@
       title: 'Through the Fire and Flames',
       file: './assets/media/media01.mp3'
     }],
-    aspectratio: '16:9'
+    height: 30,
+    width: 640,
+    cast: {
+      appid: 'E0726555'
+    }
   });
 
   player.onComplete(function () {
