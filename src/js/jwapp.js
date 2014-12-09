@@ -73,6 +73,7 @@
     } else {
       this.player.load(this.queue[0]);
       this.currentMediaDuration = this.player.getDuration();
+      console.info('----- Play Media: ' + this.queue[0] + ' -----');
       this.player.play();
     }
   };
@@ -134,4 +135,6 @@
     player.play();
   });
   window.myJwplayer = player;
+
+  window.JWplayer = JWplayer;
 }) ();
