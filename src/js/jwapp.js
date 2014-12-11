@@ -119,7 +119,7 @@
     height: 30,
     width: 640,
     cast: {
-      appid: 'E0726555'
+      appid: '2EE4C22E'
     },
     skin: 'five'.toLowerCase()
   });
