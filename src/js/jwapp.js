@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var JWPLAYER_STATE = {
+  var PLAYER_STATE = {
     'IDLE': 'IDLE',
     'BUFFERING': 'BUFFERING',
     'PLAYING': 'PLAYING',
@@ -10,10 +10,10 @@
 
   var JWplayer = function () {
     this.player = undefined;
-    this.state = JWPLAYER_STATE.IDLE;
+    this.currentState = PLAYER_STATE.IDLE;
 
-    // @type {Array} An array for the media queue
-    this.queue = [];
+    // @type {Array} An array for the media playlist
+    this.playlist = [];
     this.history = [];
     /** Schema for file
      *  {
@@ -30,111 +30,102 @@
 
     // @type {Number} A number for current media duration
     this.currentMediaDuration = 0;
+    this.currentMediaTime = 0;
 
+    this.playlistAddFlag = false;
+  }
+
+  JWplayer.prototype.setupJwplayer = function(container, setupConfig) {
+    if (!jwplayer)
+      throw new Error('Please add the jwplayer library');
+
+    this.player = jwplayer(container).setup(setupConfig);
+    this.initializeJwplayerEvents();
   };
 
-  JWplayer.prototype.setupJwplayer = function(container, file) {
-    this.player = jwplayer(container).setup({
-      playlist: file,
-      aspectratio: '16:9',
-      controls: true
-    });
-
-    this.initializePlaybackEvents();
-  };
-
-  JWplayer.prototype.initializePlaybackEvents = function() {
+  JWplayer.prototype.initializeJwplayerEvents = function() {
     this.player.onPlay(this.onPlayListener.bind(this));
     this.player.onPause(this.onPauseListener.bind(this));
     this.player.onBuffer(this.onBufferListener.bind(this));
     this.player.onIdle(this.onIdleListener.bind(this));
     this.player.onComplete(this.onCompleteListener.bind(this));
     this.player.onError(this.onErrorListener.bind(this));
+    this.player.onPlaylist(this.onPlaylistListener.bind(this));
+    this.player.onPlaylistItem(this.onPlaylistItemListener.bind(this));
   };
 
-  JWplayer.prototype.addToQueue = function(file) {
-    if (Array.isArray(file)) {
-      this.queue = this.queue.concat(file);
-    } else {  
-      this.queue.push(file);
-    }
+  JWplayer.prototype.onPlayListener = function(event) {
+    console.info(event.oldstate);
+    this.currentState = PLAYER_STATE.PLAYING;
   };
 
-  JWplayer.prototype.playMedia = function() {
-    if (this.queue.length === 0) {
-      console.error('No media can play!')
-      this.state = JWPLAYER_STATE.IDLE;
-      return;
-    }
-
-    this.state = this.player.getState();
-    if (this.state === 'PLAYING' || this.state === 'PAUSED') {
-      this.player.play();
-    } else {
-      this.player.load(this.queue[0]);
-      this.currentMediaDuration = this.player.getDuration();
-      console.info('----- Play Media: ' + this.queue[0] + ' -----');
-      this.player.play();
-    }
+  JWplayer.prototype.onPauseListener = function(event) {
+    console.info(event.oldstate);
+    this.currentState = PLAYER_STATE.PAUSED;
   };
 
-  JWplayer.prototype.nextMedia = function() {
-    var skipped = this.queue.shift();
-    this.history.push(skipped);
-    this.playMedia();
+  JWplayer.prototype.onBufferListener = function(event) {
+    console.info(event.oldstate);
+    this.currentState = PLAYER_STATE.BUFFERING;
   };
 
-  JWplayer.prototype.onPlayListener = function(oldState) {
-    this.state = JWPLAYER_STATE.PLAYING;
-  };
-
-  JWplayer.prototype.onPauseListener = function(oldState) {
-    this.state = JWPLAYER_STATE.PAUSED;
-  };
-
-  JWplayer.prototype.onBufferListener = function(oldState) {
-    this.state = JWPLAYER_STATE.BUFFERING;
-  };
-
-  JWplayer.prototype.onIdleListener = function(oldState) {
-    this.state = JWPLAYER_STATE.IDLE;
+  JWplayer.prototype.onIdleListener = function(event) {
+    console.info(event.oldstate);
+    this.currentState = PLAYER_STATE.IDLE;
   };
 
   JWplayer.prototype.onCompleteListener = function() {
-    // var played = this.queue.shift();
-    // this.history.push(played);
-    // this.playMedia();
-    this.nextMedia();
+    
   };
 
-  JWplayer.prototype.onErrorListener = function(message) {
-    console.error(message);
+  JWplayer.prototype.onErrorListener = function(event) {
+    console.error(event.message);
   };
 
-  var player = jwplayer('my-jwplayer').setup({
-    playlist: [{
-      title: 'Through the Fire and Flames',
-      file: './assets/media/media01.mp3'
-    }],
-    height: 30,
-    width: 640,
-    cast: {
-      appid: '2EE4C22E'
-    },
-    skin: 'five'.toLowerCase()
-  });
+  JWplayer.prototype.onPlaylistListener = function(event) {
+    if (this.playlistAddFlag) {
+      this.seek(this.currentMediaTime);
+      this.playlistChangeFlag = false;
+    }
+  };
 
-  player.onComplete(function () {
-    var num = Math.floor((Math.random() * 4) + 1);
-    player.load({
-      title: num, 
-      sources: [{
-        file: './assets/media/media0' + num + '.mp3'
-      }]
-    });
-    player.play();
-  });
-  window.myJwplayer = player;
+  JWplayer.prototype.onPlaylistItemListener = function(event) {
+    console.warn('Playlist Item Change');
+  };
+
+  JWplayer.prototype.addToPlaylist = function(file) {
+    if (!file) {
+      console.error('No file added');
+      return;
+    }
+
+    if (Array.isArray(file)) {
+      this.playlist.concat(file);
+    } else {
+      this.playlist.push(file);
+    }
+
+    if (this.currentState === 'PLAYING' || this.currentState === 'PAUSED') {
+      this.playlistAddFlag = true;
+      this.currentMediaTime = this.player.getPosition();
+    }
+
+    this.player.load(this.playlist);
+  };
+
+  JWplayer.prototype.seek = function(position) {
+    this.player.seek(position);
+    this.currentMediaTime = position;
+  };
 
   window.JWplayer = JWplayer;
+  window.myJwplayer = new JWplayer();
+  var config = {
+    width: 640,
+    height: 30,
+    playlist: [{file: 'assets/media/media01.mp3'}],
+    skin: 'five'
+  };
+  myJwplayer.setupJwplayer('my-jwplayer', config);
+
 }) ();
