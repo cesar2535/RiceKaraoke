@@ -149,7 +149,7 @@
   };
 
   AudioPlayer.prototype.onCanPlayThroughListener = function() {
-    
+    console.info('----- can play through -----');
   };
 
   AudioPlayer.prototype.onTimeUpdateListener = function() {
