@@ -3,6 +3,17 @@
 
   var numDisplayLines = 2;
 
+  var PLAYER_STATE = {
+    'IDLE': 'IDLE',
+    'LOADING': 'LOADING',
+    'LOADED': 'LOADED',
+    'PLAYING': 'PLAYING',
+    'PAUSED': 'PAUSED',
+    'STOPPED': 'STOPPED',
+    'SEEKING': 'SEEKING',
+    'ERROR': 'ERROR'
+  };
+
   /**
    *  Playlist Schema:
    *  {
@@ -14,50 +25,31 @@
    **/
 
 
-  var AudioPlayer = function (playerId) {
-    this.player = undefined;
-    this.canPlayFlag = false;
-    this.playbackRate = 1;
+  var AudioPlayer = function () {
+    this.player = document.getElementById('audio-player');
+    this.currentState = PLAYER_STATE.IDLE;
     this.playlist = [];
-
-    this.show = undefined;
-    this.renderInterval = undefined;
+    // this.canPlayFlag = false;
 
     this.timer = undefined;
     this.timeSteps = 100;
 
     this.currentMediaDuration = 0;
     this.currentMediaTime = 0;
-    this.lastMediaTime = 0;
 
-
-    this.initial(playerId);
+    this.init();
   };
 
-  AudioPlayer.prototype.initial = function(playerId) {
-    this.player = document.getElementById(playerId);
-
+  AudioPlayer.prototype.init = function() {
     if (!this.player)
-      throw new Error('No player here!');
+      throw new Error('No audio-player here!');
 
-    this.initializeAudioEvent();
-  };
-
-  AudioPlayer.prototype.addToPlaylist = function(media) {
-    if (media) {
-      if (Array.isArray(media))
-        this.playlist = this.playlist.concat(media);
-      else
-        this.playlist.push(media);
-    }
+    this.initializeAudioEvents();
   };
 
   AudioPlayer.prototype.loadMedia = function() {
     this.player.src = this.playlist[0];
     this.player.load();
-    // var karaoke = new RiceKaraoke(RiceKaraoke.simpleTimingToTiming(this.playlist[0].lrc));
-    // var renderer = new SimpleKaraokeDisplayEngine('karaoke-display', numDisplayLines);
-    // this.show = karaoke.createShow(renderer, numDisplayLines);
   };
 
   AudioPlayer.prototype.playMedia = function() {
@@ -66,10 +58,11 @@
       return;
     }
 
-    if (!this.canPlayFlag) {
-      console.error('No media data');
-      return;
-    }
+    // if (!this.canPlayFlag) {
+    //   console.error('No media can play (load)');
+    //   return;
+    // }
+
     this.player.play();
   };
 
@@ -83,18 +76,28 @@
 
     if (this.playlist[0]) {
       this.loadMedia();
-      this.playMedia();
+      // this.playMedia();
     } else {
       console.error('No next media');
     }
   };
 
-  AudioPlayer.prototype.incrementMediaTime = function() {
-    this.currentMediaTime = this.player.currentTime;
-    console.log('Current Time: ' + this.currentMediaTime);
+  AudioPlayer.prototype.addToPlaylist = function(file) {
+    var oldLength = this.playlist.length;
+
+    if (Array.isArray(file))
+      this.playlist = this.playlist.concat(file);
+    else
+      this.playlist.push(file);
+
+    if (oldLength <= 0) {
+      this.loadMedia();
+      // this.playMedia();
+    }
+
   };
-  
-  AudioPlayer.prototype.initializeAudioEvent = function() {
+
+  AudioPlayer.prototype.initializeAudioEvents = function() {
     // During the loading process of an audio/video, the following events occur, in this order:
     this.player.addEventListener('loadstart', this.onLoadStartListener.bind(this));
     this.player.addEventListener('durationchange', this.onDurationChangeListener.bind(this));
@@ -125,6 +128,7 @@
 
   AudioPlayer.prototype.onLoadedDataListener = function() {
     console.info('----- loaded data -----');
+    this.playMedia();
   };
 
   AudioPlayer.prototype.onProgressListener = function() {
@@ -132,20 +136,9 @@
   };
 
   AudioPlayer.prototype.onCanPlayListener = function() {
-    this.canPlayFlag = true;
     this.currentMediaDuration = this.player.duration;
-    console.log('Current Source: ' + this.player.currentSrc);
-
-    // if (this.renderInterval)
-    //   clearInterval(this.renderInterval);
-    // this.renderInterval = setInterval(function () {
-    //   if (this.player.currentTime < this.lastMediaTime){
-    //     this.show.reset();
-    //   }
-
-    //   this.show.render(this.player.currentTime);
-    //   this.lastMediaTime = this.player.currentTime;
-    // });
+    this.canPlayFlag = true;
+    console.info('Current Source: ' + this.player.currentSrc);
   };
 
   AudioPlayer.prototype.onCanPlayThroughListener = function() {
@@ -153,22 +146,17 @@
   };
 
   AudioPlayer.prototype.onTimeUpdateListener = function() {
-    // this.currentMediaTime = this.player.currentTime;
-    // console.log('Current Time: ' + this.currentMediaTime);
+
   };
 
   AudioPlayer.prototype.onPlayListener = function() {
-    console.log('----- Play Media: ' + this.player.currentSrc + ' -----');
-    if (this.timer) {
-      clearInterval(this.timer);
-      this.timer = undefined;
-    }
-
-    this.timer = setInterval(this.incrementMediaTime.bind(this), this.timeSteps);
+    console.info('----- Play Media: ' + this.player.currentSrc + ' -----');
+    this.currentState = PLAYER_STATE.PLAYING;
   };
 
   AudioPlayer.prototype.onPauseListener = function() {
-    console.info('----- pause -----');
+    console.info('----- Media Pause -----');
+    this.currentState = PLAYER_STATE.PAUSED;
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = undefined;
@@ -177,17 +165,12 @@
   };
 
   AudioPlayer.prototype.onEndedListener = function() {
-    console.log('----- Media Ended -----');
-
-    if (this.timer) {
-      clearInterval(this.timer);
-      this.timer = undefined;
-    }
-
-    this.nextMedia();
+    console.info('----- Media Ended -----');
+    if (this.playlist.length === 0)
+      this.currentState = PLAYER_STATE.IDLE;
   };
 
   window.AudioPlayer = AudioPlayer;
+  window.aud = new AudioPlayer();
 
-  window.aud = new AudioPlayer('audio-player');
 }) ();
